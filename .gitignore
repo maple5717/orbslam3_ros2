@@ -2,3 +2,4 @@ vocabulary/ORBvoc.txt
 config/isaac
 launch
 .vscode/
+build/
