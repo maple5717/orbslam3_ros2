@@ -1,6 +1,13 @@
 # ORB_SLAM3_ROS2
 This repository is ROS2 wrapping to use ORB_SLAM3
 
+## Notes ##
+To extract vocabulary
+```
+cd vocabulary
+tar -zxvf ORBvoc.txt.tar.gz
+```
+
 ---
 
 ## Demo Video
