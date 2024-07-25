@@ -22,10 +22,14 @@
 
 #include "utility.hpp"
 
+#include "nav_msgs/msg/odometry.hpp"
+#include "geometry_msgs/msg/pose_stamped.hpp" 
+
 class RgbdSlamNode : public rclcpp::Node
 {
 public:
     RgbdSlamNode(ORB_SLAM3::System* pSLAM);
+    
 
     ~RgbdSlamNode();
 
@@ -36,6 +40,7 @@ private:
     void GrabRGBD(const sensor_msgs::msg::Image::SharedPtr msgRGB, const sensor_msgs::msg::Image::SharedPtr msgD);
 
     ORB_SLAM3::System* m_SLAM;
+    rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub;
 
     cv_bridge::CvImageConstPtr cv_ptrRGB;
     cv_bridge::CvImageConstPtr cv_ptrD;
