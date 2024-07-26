@@ -1,5 +1,8 @@
 # ORB_SLAM3_ROS2
-This repository is ROS2 wrapping to use ORB_SLAM3
+Forked repository of the [ORB-SLAM3 ROS Wrapper](github.com/zang09/ORB_SLAM3_ROS2). 
+
+rgbd-inertial is supported. 
+<!-- This repository is ROS2 wrapping to use ORB_SLAM3 -->
 
 ## Notes ##
 To extract vocabulary
