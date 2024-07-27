@@ -50,6 +50,12 @@ add_executable(rgbd
 )
 ament_target_dependencies(rgbd rclcpp sensor_msgs nav_msgs cv_bridge message_filters ORB_SLAM3 Pangolin OpenCV)
 
+
+add_executable(rgbd-inertial
+  src/rgbd-inertial/rgbd-inertial.cpp
+  src/rgbd-inertial/rgbd-inertial-node.cpp
+)
+ament_target_dependencies(rgbd-inertial rclcpp sensor_msgs nav_msgs cv_bridge message_filters ORB_SLAM3 Pangolin OpenCV)
 # add_executable(stereo
 #   src/stereo/stereo.cpp
 #   src/stereo/stereo-slam-node.cpp
@@ -64,9 +70,12 @@ ament_target_dependencies(rgbd rclcpp sensor_msgs nav_msgs cv_bridge message_fil
 
 # install(TARGETS mono rgbd stereo stereo-inertial DESTINATION lib/${PROJECT_NAME})
 install(TARGETS rgbd DESTINATION lib/${PROJECT_NAME})
-
+install(TARGETS rgbd-inertial DESTINATION lib/${PROJECT_NAME})
 # Install launch files.
-#install(DIRECTORY launch config vocabulary
-#  DESTINATION share/${PROJECT_NAME}/)
+install(DIRECTORY 
+# launch 
+config 
+vocabulary
+ DESTINATION share/${PROJECT_NAME}/)
 
 ament_package()
