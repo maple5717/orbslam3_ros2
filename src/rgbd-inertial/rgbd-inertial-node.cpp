@@ -13,12 +13,12 @@ RgbdInertialNode::RgbdInertialNode(ORB_SLAM3::System* pSLAM)
     // depth_sub = std::make_shared<message_filters::Subscriber<ImageMsg> >(shared_ptr<rclcpp::Node>(this), "camera/depth");
     odom_pub = this->create_publisher<nav_msgs::msg::Odometry>("odometry", 10);
     message_filters::Subscriber<ImageMsg>* rgb_sub = new message_filters::Subscriber<ImageMsg>(this, "/camera/camera/color/image_raw");;
-    message_filters::Subscriber<ImageMsg>* depth_sub = new message_filters::Subscriber<ImageMsg>(this, "/camera/camera/depth/image_rect_raw");
+    message_filters::Subscriber<ImageMsg>* depth_sub = new message_filters::Subscriber<ImageMsg>(this, "/camera/camera/aligned_depth_to_color/image_raw");
 
     syncApproximate = std::make_shared<message_filters::Synchronizer<approximate_sync_policy> >(approximate_sync_policy(10), *rgb_sub, *depth_sub);
     syncApproximate->registerCallback(&RgbdInertialNode::GrabRGBD, this);
 
-    subImu_ = this->create_subscription<ImuMsg>("camera/camera/imu", 1000, std::bind(&RgbdInertialNode::GrabImu, this, _1));
+    subImu_ = this->create_subscription<ImuMsg>("/camera/camera/imu", 1000, std::bind(&RgbdInertialNode::GrabImu, this, _1));
 
     syncThread_ = new std::thread(&RgbdInertialNode::SyncWithImu, this);
 }
@@ -63,7 +63,8 @@ void RgbdInertialNode::GrabRGBD(const ImageMsg::SharedPtr msgRGB, const ImageMsg
 {
     // save the ros rgb image message to queue.
     
-    //  std::cout  << imgRgbBuf_.size() << std::endl;
+    // std::cout  << "rgb " << imgRgbBuf_.size() << std::endl;
+    // std::cout  << "depth " << imgDepthBuf_.size() << std::endl;
     bufMutexRgb_.lock();
     if (imgRgbBuf_.size() > img_queue_size_max)
     {
@@ -141,6 +142,26 @@ void RgbdInertialNode::Track(double tTrack)
     Sophus::SE3f pose = m_SLAM->TrackRGBD(imRgb, imDepth, tTrack, vImuMeas);
     geometry_msgs::msg::PoseStamped pose_stamped;
     nav_msgs::msg::Odometry odometry;
+
+    // Transformation
+    // TODO: put this into a func
+    Eigen::Matrix3d R_body_to_camera; // Rotation matrix (body to camera)
+    Eigen::Vector3d t_body_to_camera; // Translation vector (body to camera)
+
+    // Rotation matrix (from body frame to camera frame)
+    R_body_to_camera << 0., 0., 1.,
+                        -1., 0., 0.,
+                         0., -1., 0.;
+
+    // Translation vector (from body frame to camera frame) 
+    t_body_to_camera << 0., 0., 1.4;
+
+    Sophus::SE3f T_body_to_camera(Sophus::SO3f(R_body_to_camera.cast<float>()), t_body_to_camera.cast<float>());
+
+    // Compute the pose in the body frame
+    pose = T_body_to_camera.inverse() * pose;
+
+
     
     // Set position (translation)
     pose_stamped.pose.position.x = pose.translation()[0];
@@ -157,10 +178,12 @@ void RgbdInertialNode::Track(double tTrack)
     // Header
     odometry.header = pose_stamped.header;
     odometry.pose.pose = pose_stamped.pose;
+    odometry.header.frame_id = "odom";
+    odometry.child_frame_id = "base_link";
     
     // Twist (optional, set if velocity information is available)
     // odometry.twist.twist = ...;
-    
+    odometry.header.stamp = this->now();
     odom_pub->publish(odometry);
 }
 
