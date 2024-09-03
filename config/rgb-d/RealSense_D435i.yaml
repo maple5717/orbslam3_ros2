@@ -6,10 +6,10 @@
 Camera.type: "PinHole"
 
 # Right Camera calibration and distortion parameters (OpenCV)
-Camera.fx: 617.201
-Camera.fy: 617.362
-Camera.cx: 324.637
-Camera.cy: 242.462
+Camera.fx: 605.2938232421875
+Camera.fy: 605.2938232421875
+Camera.cx: 316.6695556640625  
+Camera.cy: 236.89938354492188
 
 
 # distortion parameters
@@ -29,7 +29,7 @@ Camera.fps: 30.0
 Camera.RGB: 1
 
 # Image scale, it changes the image size to be processed (<1.0: reduce, >1.0: increase)
-Camera.imageScale: 0.5 # 0.5 #0.7071 # 1/sqrt(2)
+# Camera.imageScale: 0.5 # 0.5 #0.7071 # 1/sqrt(2)
 
 # Close/Far threshold. Baseline times.
 ThDepth: 40.0
@@ -45,19 +45,23 @@ Tbc: !!opencv-matrix
    rows: 4
    cols: 4
    dt: f
-   data: [1,0,0,-0.005,
-         0,1,0,-0.005,
-         0,0,1,0.0117,
-         0.0, 0.0, 0.0, 1.0]
+   data: [  0.999947,        -0.00779459,      -0.00668475 ,  -0.0202622599899769 
+            0.00778739,       0.999969,        -0.00110219,    0.00487191276624799
+            0.00669314,       0.00105007,       0.999977, 0.0116125149652362  
+            0,0,0,1]
+      # [1,0,0,-0.012,
+      #    0,1,0,-0.006,
+      #    0,0,1,0.005,
+      #    0.0, 0.0, 0.0, 1.0]
 
 # Do not insert KFs when recently lost
 InsertKFsWhenLost: 0
 
 # IMU noise (Use those from VINS-mono)
-IMU.NoiseGyro: 1e-3 # 2.44e-4 #1e-3 # rad/s^0.5
-IMU.NoiseAcc: 1e-2 # 1.47e-3 #1e-2 # m/s^1.5
-IMU.GyroWalk: 1e-6 # rad/s^1.5
-IMU.AccWalk: 1e-4 # m/s^2.5
+IMU.NoiseGyro: 4.4092381657107440e-03 # 2.44e-4 #1e-3 # rad/s^0.5
+IMU.NoiseAcc: 1.9203435687181320e-02 # 1.47e-3 #1e-2 # m/s^1.5
+IMU.GyroWalk: 5.2122195707954007e-05 # rad/s^1.5
+IMU.AccWalk: 5.7008549018960453e-04 # m/s^2.5
 IMU.Frequency: 200
 
 #--------------------------------------------------------------------------------------------
