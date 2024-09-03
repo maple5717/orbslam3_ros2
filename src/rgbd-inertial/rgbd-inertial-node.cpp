@@ -148,18 +148,18 @@ void RgbdInertialNode::Track(double tTrack)
     Eigen::Matrix3d R_body_to_camera; // Rotation matrix (body to camera)
     Eigen::Vector3d t_body_to_camera; // Translation vector (body to camera)
 
-    // Rotation matrix (from body frame to camera frame)
-    R_body_to_camera << 0., 0., 1.,
-                        -1., 0., 0.,
-                         0., -1., 0.;
+    // // Rotation matrix (from body frame to camera frame)
+    // R_body_to_camera << 0., 0., 1.,
+    //                     -1., 0., 0.,
+    //                      0., -1., 0.;
 
-    // Translation vector (from body frame to camera frame) 
-    t_body_to_camera << 0., 0., 1.4;
+    // // Translation vector (from body frame to camera frame) 
+    // t_body_to_camera << 0., 0., 1.4;
 
-    Sophus::SE3f T_body_to_camera(Sophus::SO3f(R_body_to_camera.cast<float>()), t_body_to_camera.cast<float>());
+    // Sophus::SE3f T_body_to_camera(Sophus::SO3f(R_body_to_camera.cast<float>()), t_body_to_camera.cast<float>());
 
-    // Compute the pose in the body frame
-    pose = T_body_to_camera.inverse() * pose;
+    // // Compute the pose in the body frame
+    // pose = T_body_to_camera.inverse() * pose;
 
 
     
@@ -178,8 +178,8 @@ void RgbdInertialNode::Track(double tTrack)
     // Header
     odometry.header = pose_stamped.header;
     odometry.pose.pose = pose_stamped.pose;
-    odometry.header.frame_id = "odom";
-    odometry.child_frame_id = "base_link";
+    odometry.header.frame_id = "camera_color_optical_frame";
+    // odometry.child_frame_id = "base_link";
     
     // Twist (optional, set if velocity information is available)
     // odometry.twist.twist = ...;
