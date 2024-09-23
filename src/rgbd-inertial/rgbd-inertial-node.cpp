@@ -1,7 +1,7 @@
 #include "rgbd-inertial-node.hpp"
 #include "sophus/se3.hpp"
 #include <opencv2/core/core.hpp>
-
+#include <Eigen/Dense>
 
 using std::placeholders::_1;
 
@@ -161,19 +161,30 @@ void RgbdInertialNode::Track(double tTrack)
     // // Compute the pose in the body frame
     // pose = T_body_to_camera.inverse() * pose;
 
+    Eigen::Vector3f translation = pose.translation();
+    Eigen::Quaternionf quaternion_p(pose.unit_quaternion());
+
+    // Convert quaternion to a rotation matrix (SO(3))
+    Eigen::Matrix3f rotation_matrix = quaternion_p.toRotationMatrix();
+
+    // Compute the inverse of the rotation matrix
+    Eigen::Matrix3f inverse_rotation_matrix = rotation_matrix.inverse();
+
+    // Transform the translation using the inverse rotation matrix
+    Eigen::Vector3f transformed_translation = inverse_rotation_matrix * translation;
 
     
     // Set position (translation)
-    pose_stamped.pose.position.x = pose.translation()[0];
-    pose_stamped.pose.position.y = pose.translation()[1];
-    pose_stamped.pose.position.z = pose.translation()[2];
+    pose_stamped.pose.position.x = -transformed_translation[0]; // -pose.translation()[0];
+    pose_stamped.pose.position.y = transformed_translation[1]; // pose.translation()[1];
+    pose_stamped.pose.position.z = -transformed_translation[2]; // -pose.translation()[2];
     
     // Set orientation (rotation)
     Eigen::Quaternionf quaternion(pose.unit_quaternion());
     pose_stamped.pose.orientation.x = quaternion.x();
     pose_stamped.pose.orientation.y = quaternion.y();
     pose_stamped.pose.orientation.z = quaternion.z();
-    pose_stamped.pose.orientation.w = quaternion.w();
+    pose_stamped.pose.orientation.w = -quaternion.w();
 
     // Header
     odometry.header = pose_stamped.header;
