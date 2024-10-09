@@ -48,12 +48,16 @@ private:
 
     ORB_SLAM3::System* m_SLAM;
     std::thread *syncThread_;
-    rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub;
+    rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub; // publish vel in local frame only 
 
     cv_bridge::CvImageConstPtr cv_ptrRGB;
     cv_bridge::CvImageConstPtr cv_ptrD;
 
-    
+
+    // for velocity computing
+    rclcpp::Time prev_time = this->now();
+    Eigen::Vector3f prev_translation = Eigen::Vector3f::Zero();
+    Eigen::Quaternionf prev_quaternion  = Eigen::Quaternionf::Identity();
 
     // IMU
     rclcpp::Subscription<ImuMsg>::SharedPtr   subImu_;

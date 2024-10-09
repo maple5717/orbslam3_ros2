@@ -2,6 +2,8 @@
 #include "sophus/se3.hpp"
 #include <opencv2/core/core.hpp>
 #include <Eigen/Dense>
+#include <Eigen/Geometry>
+#include <cmath>
 
 using std::placeholders::_1;
 
@@ -140,6 +142,7 @@ void RgbdInertialNode::Track(double tTrack)
 
 
     Sophus::SE3f pose = m_SLAM->TrackRGBD(imRgb, imDepth, tTrack, vImuMeas);
+    rclcpp::Time current_time = this->now();
     geometry_msgs::msg::PoseStamped pose_stamped;
     nav_msgs::msg::Odometry odometry;
 
@@ -173,6 +176,25 @@ void RgbdInertialNode::Track(double tTrack)
     // Transform the translation using the inverse rotation matrix
     Eigen::Vector3f transformed_translation = inverse_rotation_matrix * translation;
 
+
+    double dt = (current_time - prev_time).seconds();
+    Eigen::Vector3f vel_linear = (translation - prev_translation) / dt; 
+
+    Eigen::Quaternionf delta_quat = quaternion_p * prev_quaternion.inverse();
+    Eigen::Vector3f vel_rot = delta_quat.toRotationMatrix().eulerAngles(0, 1, 2)/ dt;
+    
+    // Note: The euler angle only covers y component
+    double y_rot = atan2(delta_quat.y(), delta_quat.w());
+    // std::cout << delta_quat.toRotationMatrix() << std::endl << std::endl;
+    // std::cout << delta_quat.toRotationMatrix().eulerAngles(0, 1, 2) << std::endl << std::endl;
+
+
+    prev_time = current_time; 
+    prev_translation = translation;
+    prev_quaternion = quaternion_p; 
+
+
+
     
     // Set position (translation)
     pose_stamped.pose.position.x = -transformed_translation[0]; // -pose.translation()[0];
@@ -185,6 +207,14 @@ void RgbdInertialNode::Track(double tTrack)
     pose_stamped.pose.orientation.y = quaternion.y();
     pose_stamped.pose.orientation.z = quaternion.z();
     pose_stamped.pose.orientation.w = -quaternion.w();
+
+    odometry.twist.twist.angular.x = 0;// -vel_rot[0];
+    odometry.twist.twist.angular.y = -y_rot / dt;// -vel_rot[1];
+    odometry.twist.twist.angular.z = 0;// -vel_rot[2];
+
+    odometry.twist.twist.linear.x = -vel_linear[0];
+    odometry.twist.twist.linear.y = vel_linear[1];
+    odometry.twist.twist.linear.z = -vel_linear[2];
 
     // Header
     odometry.header = pose_stamped.header;
